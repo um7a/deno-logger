@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+          cache: true
+
+      - name: Check formatting
+        run: deno fmt --check deno.json src/ tests/ README.md
+
+      - name: Lint
+        run: deno lint
+
+      - name: Type check
+        run: deno check src/ tests/
+
+      - name: Test
+        run: deno test --allow-read --allow-write --allow-env
+
+  publish:
+    if: github.ref_type == 'tag'
+    needs: quality
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+          cache: true
+
+      - name: Verify tag matches package version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="$(deno eval "console.log(JSON.parse(Deno.readTextFileSync('deno.json')).version)")"
+          test "$TAG" = "$VERSION"
+
+      - name: Publish to JSR
+        run: deno publish

@@ -1,0 +1,21 @@
+{
+  "name": "@um7a/logger",
+  "version": "1.0.0",
+  "description": "Logger for Deno applications.",
+  "license": "BSD-3-Clause",
+  "exports": "./src/logger.ts",
+  "publish": {
+    "include": [
+      "README.md",
+      "LICENSE",
+      "src/logger.ts"
+    ]
+  },
+  "tasks": {
+    "check": "deno fmt --check deno.json src/ tests/ README.md && deno lint && deno check src/ && deno test --allow-read --allow-write --allow-env",
+    "publish:dry": "deno publish --dry-run"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1"
+  }
+}
