@@ -13,7 +13,7 @@ export enum LogLevel {
 
 export interface LoggerOptions {
   logLevel?: LogLevel;
-  debugTag?: string | null;
+  tags?: string[] | null;
   logFile?: string | null;
   maxFileBytes?: number;
   maxFileCount?: number;
@@ -33,7 +33,7 @@ export class Logger {
   private static instance: Logger;
 
   private logLevel: LogLevel;
-  private debugTag: string | null;
+  private tags: RegExp[] | null;
   private logFile: string | null;
   private maxFileBytes: number;
   private maxFileCount: number;
@@ -48,7 +48,7 @@ export class Logger {
   // Private methods
   private constructor(options: LoggerOptions = {}) {
     this.logLevel = options.logLevel ?? LogLevel.INFO;
-    this.debugTag = options.debugTag ?? null;
+    this.tags = this.compileTags(options.tags ?? null);
     this.logFile = options.logFile ?? null;
     this.maxFileBytes = options.maxFileBytes ?? 10 * 1024 * 1024;
     this.maxFileCount = options.maxFileCount ?? 5;
@@ -63,10 +63,17 @@ export class Logger {
     if (level > this.logLevel) {
       return false;
     }
-    if (this.debugTag && !tag?.match(new RegExp(this.debugTag))) {
+    if (
+      this.tags !== null &&
+      (!tag || !this.tags.some((pattern) => pattern.test(tag)))
+    ) {
       return false;
     }
     return true;
+  }
+
+  private compileTags(tags: string[] | null): RegExp[] | null {
+    return tags?.map((tag) => new RegExp(tag)) ?? null;
   }
 
   private formatMessage(
@@ -249,8 +256,8 @@ export class Logger {
     this.logLevel = level;
   }
 
-  public setDebugTag(tag: string | null): void {
-    this.debugTag = tag;
+  public setTags(tags: string[] | null): void {
+    this.tags = this.compileTags(tags);
   }
 
   public setLogFile(filePath: string | null): void {

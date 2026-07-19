@@ -15,7 +15,7 @@ Deno.test("Logger filters levels and tags for every log level", async () => {
   try {
     logger.setLogFile(logFile);
     logger.setLogLevel(LogLevel.DEBUG);
-    logger.setDebugTag("^allowed$");
+    logger.setTags(["^allowed$", "^secondary:"]);
     logger.setMaxFileBytes(Number.MAX_SAFE_INTEGER);
     logger.setMaxFileCount(5);
     logger.setRotationDays(null);
@@ -24,6 +24,7 @@ Deno.test("Logger filters levels and tags for every log level", async () => {
     logger.warn("allowed warn", "allowed");
     logger.info("allowed info", "allowed");
     logger.debug("allowed debug", "allowed");
+    logger.info("secondary info", "secondary:http");
     logger.error("blocked error", "blocked");
     logger.warn("blocked warn", "blocked");
     logger.info("blocked info", "blocked");
@@ -36,9 +37,10 @@ Deno.test("Logger filters levels and tags for every log level", async () => {
     assert(output.includes("WARN  allowed warn [allowed]"));
     assert(output.includes("INFO  allowed info [allowed]"));
     assert(output.includes("DEBUG allowed debug [allowed]"));
+    assert(output.includes("INFO  secondary info [secondary:http]"));
     assertEquals(output.includes("blocked"), false);
 
-    logger.setDebugTag(null);
+    logger.setTags(null);
     logger.setLogLevel(LogLevel.WARN);
     logger.info("hidden by level");
     logger.warn("visible by level");
@@ -59,7 +61,7 @@ Deno.test("Logger rotates a log file after reaching the size limit", async () =>
   try {
     logger.setLogFile(logFile);
     logger.setLogLevel(LogLevel.INFO);
-    logger.setDebugTag(null);
+    logger.setTags(null);
     logger.setMaxFileBytes(1);
     logger.setMaxFileCount(2);
     logger.setRotationDays(null);
@@ -84,7 +86,7 @@ Deno.test("Logger rotates when the configured number of days has elapsed", async
   try {
     logger.setLogFile(logFile);
     logger.setLogLevel(LogLevel.INFO);
-    logger.setDebugTag(null);
+    logger.setTags(null);
     logger.setMaxFileBytes(Number.MAX_SAFE_INTEGER);
     logger.setMaxFileCount(2);
     logger.setRotationDays(1 / (24 * 60 * 60 * 100));
@@ -116,6 +118,10 @@ Deno.test("Logger rejects invalid rotation day values", () => {
   );
 });
 
+Deno.test("Logger rejects invalid tag patterns", () => {
+  assertThrows(() => logger.setTags(["["]), SyntaxError);
+});
+
 Deno.test("Logger flushes queued writes in order and remains reusable", async () => {
   const directory = await Deno.makeTempDir();
   const logFile = `${directory}/application.log`;
@@ -123,7 +129,7 @@ Deno.test("Logger flushes queued writes in order and remains reusable", async ()
   try {
     logger.setLogFile(logFile);
     logger.setLogLevel(LogLevel.INFO);
-    logger.setDebugTag(null);
+    logger.setTags(null);
     logger.setMaxFileBytes(Number.MAX_SAFE_INTEGER);
     logger.setMaxFileCount(2);
     logger.setRotationDays(null);

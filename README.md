@@ -96,13 +96,13 @@ Tagged messages include the tag at the end of the line:
 2026-01-01T00:00:00.000Z INFO  Connection opened [database]
 ```
 
-Set `debugTag` to a regular-expression pattern when only matching tags should be
-logged:
+Set `tags` to regular-expression patterns when only matching tags should be
+logged. A tag is accepted when it matches any pattern:
 
 ```ts
 const logger = Logger.initialize({
   logLevel: LogLevel.DEBUG,
-  debugTag: "^(database|http)$",
+  tags: ["^database$", "^http$"],
 });
 
 logger.debug("Query completed", "database"); // Emitted
@@ -112,7 +112,8 @@ logger.error("Missing tag"); // Filtered out
 ```
 
 The tag filter applies to every log level. When it is set, messages without a
-tag are also filtered out. The default is `null`, which accepts every tag.
+tag are also filtered out. The default is `null`, which accepts every tag. An
+empty array filters out every message.
 
 ### Writing to a file
 
@@ -203,7 +204,7 @@ Settings can be changed after initialization:
 
 ```ts
 logger.setLogLevel(LogLevel.DEBUG);
-logger.setDebugTag("^worker:");
+logger.setTags(["^worker:", "^scheduler:"]);
 logger.setLogFile("./logs/worker.log");
 logger.setMaxFileBytes(20 * 1024 * 1024);
 logger.setMaxFileCount(10);
@@ -214,8 +215,8 @@ logger.debug("Job started", "worker:email");
 await logger.flush();
 ```
 
-Use `null` with `setDebugTag()`, `setLogFile()`, or `setRotationDays()` to
-disable the corresponding setting.
+Use `null` with `setTags()`, `setLogFile()`, or `setRotationDays()` to disable
+the corresponding setting.
 
 ## License
 
