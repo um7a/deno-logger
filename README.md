@@ -83,17 +83,17 @@ The default level is `LogLevel.INFO`.
 
 ### Filtering by tag
 
-Pass a tag as the second argument to any logging method:
+Pass tags as the second argument to any logging method:
 
 ```ts
-logger.info("Connection opened", "database");
-logger.error("Connection failed", "database");
+logger.info("Connection opened", ["database", "primary"]);
+logger.error("Connection failed", ["database"]);
 ```
 
-Tagged messages include the tag at the end of the line:
+Tagged messages include the tags at the end of the line:
 
 ```text
-2026-01-01T00:00:00.000Z INFO  Connection opened [database]
+2026-01-01T00:00:00.000Z INFO  Connection opened [database] [primary]
 ```
 
 Set `tags` to regular-expression patterns when only matching tags should be
@@ -105,15 +105,16 @@ const logger = Logger.initialize({
   tags: ["^database$", "^http$"],
 });
 
-logger.debug("Query completed", "database"); // Emitted
-logger.info("Request completed", "http"); // Emitted
-logger.warn("Cache is full", "cache"); // Filtered out
-logger.error("Missing tag"); // Filtered out
+logger.debug("Query completed", ["database", "query"]); // Emitted
+logger.info("Request completed", ["request", "http"]); // Emitted
+logger.warn("Cache is full", ["cache"]); // Filtered out
+logger.error("Missing tags"); // Filtered out
 ```
 
-The tag filter applies to every log level. When it is set, messages without a
-tag are also filtered out. The default is `null`, which accepts every tag. An
-empty array filters out every message.
+The tag filter applies to every log level. A message is emitted when any of its
+tags matches any configured pattern. When the filter is set, messages without
+tags are also filtered out. The default is `null`, which accepts every tag. An
+empty filter array filters out every message.
 
 ### Writing to a file
 
@@ -211,7 +212,7 @@ logger.setMaxFileCount(10);
 logger.setRotationDays(1);
 logger.setColorize(false);
 
-logger.debug("Job started", "worker:email");
+logger.debug("Job started", ["worker:email", "scheduled"]);
 await logger.flush();
 ```
 

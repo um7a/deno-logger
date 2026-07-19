@@ -59,13 +59,15 @@ export class Logger {
     this.writeErrors = [];
   }
 
-  private shouldLog(level: LogLevel, tag?: string): boolean {
+  private shouldLog(level: LogLevel, tags?: string[]): boolean {
     if (level > this.logLevel) {
       return false;
     }
+    const tagPatterns = this.tags;
     if (
-      this.tags !== null &&
-      (!tag || !this.tags.some((pattern) => pattern.test(tag)))
+      tagPatterns !== null &&
+      (!tags ||
+        !tags.some((tag) => tagPatterns.some((pattern) => pattern.test(tag))))
     ) {
       return false;
     }
@@ -79,7 +81,7 @@ export class Logger {
   private formatMessage(
     level: LogLevel,
     message: string,
-    tag?: string,
+    tags?: string[],
   ): string {
     const timestamp = new Date().toISOString();
     const levelStr = LogLevel[level];
@@ -87,7 +89,7 @@ export class Logger {
     const coloredLevel = this.shouldColorize()
       ? this.colorizeLevel(paddedLevel)
       : paddedLevel;
-    const tagStr = tag ? ` [${tag}]` : "";
+    const tagStr = tags?.map((tag) => ` [${tag}]`).join("") ?? "";
     return `${timestamp} ${coloredLevel} ${message}${tagStr}\n`;
   }
 
@@ -291,30 +293,30 @@ export class Logger {
     }
   }
 
-  public error(message: string, tag?: string): void {
-    if (this.shouldLog(LogLevel.ERROR, tag)) {
-      const formatted = this.formatMessage(LogLevel.ERROR, message, tag);
+  public error(message: string, tags?: string[]): void {
+    if (this.shouldLog(LogLevel.ERROR, tags)) {
+      const formatted = this.formatMessage(LogLevel.ERROR, message, tags);
       this.enqueueLog(formatted);
     }
   }
 
-  public warn(message: string, tag?: string): void {
-    if (this.shouldLog(LogLevel.WARN, tag)) {
-      const formatted = this.formatMessage(LogLevel.WARN, message, tag);
+  public warn(message: string, tags?: string[]): void {
+    if (this.shouldLog(LogLevel.WARN, tags)) {
+      const formatted = this.formatMessage(LogLevel.WARN, message, tags);
       this.enqueueLog(formatted);
     }
   }
 
-  public info(message: string, tag?: string): void {
-    if (this.shouldLog(LogLevel.INFO, tag)) {
-      const formatted = this.formatMessage(LogLevel.INFO, message, tag);
+  public info(message: string, tags?: string[]): void {
+    if (this.shouldLog(LogLevel.INFO, tags)) {
+      const formatted = this.formatMessage(LogLevel.INFO, message, tags);
       this.enqueueLog(formatted);
     }
   }
 
-  public debug(message: string, tag?: string): void {
-    if (this.shouldLog(LogLevel.DEBUG, tag)) {
-      const formatted = this.formatMessage(LogLevel.DEBUG, message, tag);
+  public debug(message: string, tags?: string[]): void {
+    if (this.shouldLog(LogLevel.DEBUG, tags)) {
+      const formatted = this.formatMessage(LogLevel.DEBUG, message, tags);
       this.enqueueLog(formatted);
     }
   }

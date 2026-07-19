@@ -20,21 +20,22 @@ Deno.test("Logger filters levels and tags for every log level", async () => {
     logger.setMaxFileCount(5);
     logger.setRotationDays(null);
 
-    logger.error("allowed error", "allowed");
-    logger.warn("allowed warn", "allowed");
-    logger.info("allowed info", "allowed");
-    logger.debug("allowed debug", "allowed");
-    logger.info("secondary info", "secondary:http");
-    logger.error("blocked error", "blocked");
-    logger.warn("blocked warn", "blocked");
-    logger.info("blocked info", "blocked");
-    logger.debug("blocked debug", "blocked");
+    logger.error("allowed error", ["allowed", "error"]);
+    logger.warn("allowed warn", ["warn", "allowed"]);
+    logger.info("allowed info", ["allowed"]);
+    logger.debug("allowed debug", ["allowed"]);
+    logger.info("secondary info", ["secondary:http"]);
+    logger.error("blocked error", ["blocked"]);
+    logger.warn("blocked warn", ["blocked"]);
+    logger.info("blocked info", ["blocked"]);
+    logger.debug("blocked debug", ["blocked"]);
+    logger.info("blocked with empty tags", []);
     logger.info("blocked without tag");
 
     await logger.flush();
     const output = await Deno.readTextFile(logFile);
-    assert(output.includes("ERROR allowed error [allowed]"));
-    assert(output.includes("WARN  allowed warn [allowed]"));
+    assert(output.includes("ERROR allowed error [allowed] [error]"));
+    assert(output.includes("WARN  allowed warn [warn] [allowed]"));
     assert(output.includes("INFO  allowed info [allowed]"));
     assert(output.includes("DEBUG allowed debug [allowed]"));
     assert(output.includes("INFO  secondary info [secondary:http]"));
