@@ -83,7 +83,7 @@ export class Logger {
     message: string,
     tags?: string[],
   ): string {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.formatTimestamp(new Date());
     const levelStr = LogLevel[level];
     const paddedLevel = this.padLevel(levelStr);
     const coloredLevel = this.shouldColorize()
@@ -91,6 +91,20 @@ export class Logger {
       : paddedLevel;
     const tagStr = tags?.map((tag) => ` [${tag}]`).join("") ?? "";
     return `${timestamp} ${coloredLevel} ${message}${tagStr}\n`;
+  }
+
+  private formatTimestamp(date: Date): string {
+    const offsetMinutes = -date.getTimezoneOffset();
+    const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+    const absoluteOffsetMinutes = Math.abs(offsetMinutes);
+    const offsetHours = Math.floor(absoluteOffsetMinutes / 60);
+    const remainingOffsetMinutes = absoluteOffsetMinutes % 60;
+    const localDate = new Date(date.getTime() + offsetMinutes * 60 * 1000);
+    const localTimestamp = localDate.toISOString().slice(0, -1);
+
+    return `${localTimestamp}${offsetSign}${
+      String(offsetHours).padStart(2, "0")
+    }:${String(remainingOffsetMinutes).padStart(2, "0")}`;
   }
 
   private shouldColorize(): boolean {

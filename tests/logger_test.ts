@@ -8,6 +8,40 @@ import { Logger, LogLevel } from "../src/logger.ts";
 
 const logger = Logger.initialize();
 
+Deno.test("Logger timestamps use the system timezone offset", async () => {
+  const directory = await Deno.makeTempDir();
+  const logFile = `${directory}/application.log`;
+
+  try {
+    logger.setLogFile(logFile);
+    logger.setLogLevel(LogLevel.INFO);
+    logger.setTags(null);
+    logger.setMaxFileBytes(Number.MAX_SAFE_INTEGER);
+    logger.setRotationDays(null);
+
+    logger.info("system timezone");
+    await logger.flush();
+
+    const output = await Deno.readTextFile(logFile);
+    const match = output.match(
+      /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}([+-]\d{2}:\d{2})) /,
+    );
+    assert(match);
+
+    const loggedAt = new Date(match[1]);
+    const offsetMinutes = -loggedAt.getTimezoneOffset();
+    const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+    const absoluteOffsetMinutes = Math.abs(offsetMinutes);
+    const expectedOffset = `${offsetSign}${
+      String(Math.floor(absoluteOffsetMinutes / 60)).padStart(2, "0")
+    }:${String(absoluteOffsetMinutes % 60).padStart(2, "0")}`;
+
+    assertEquals(match[2], expectedOffset);
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
+});
+
 Deno.test("Logger filters levels and tags for every log level", async () => {
   const directory = await Deno.makeTempDir();
   const logFile = `${directory}/application.log`;

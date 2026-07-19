@@ -37,7 +37,14 @@ contains an ISO 8601 timestamp, a padded level name, the message, and an
 optional tag:
 
 ```text
-2026-01-01T00:00:00.000Z INFO  The server started
+2026-01-01T00:00:00.000-08:00 INFO  The server started
+```
+
+Timestamps use the system timezone and include its UTC offset. The timezone can
+be overridden for a process by setting the `TZ` environment variable:
+
+```sh
+TZ=America/Los_Angeles deno run app.ts
 ```
 
 Log writes are queued so calls remain synchronous and messages retain their
