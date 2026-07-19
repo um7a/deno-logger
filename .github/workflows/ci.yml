@@ -60,4 +60,4 @@ jobs:
           test "$TAG" = "$VERSION"
 
       - name: Publish to JSR
-        run: deno publish
+        run: npx jsr publish
